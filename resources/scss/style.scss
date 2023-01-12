@@ -1,0 +1,16 @@
+@import "abstracts/variables";
+@import "abstracts/mixins";
+@import "base/base";
+@import "base/fonts";
+
+@include mobile {
+  body {
+    background-color: orange;
+  }
+}
+
+@include tablet {
+  body {
+    background-color: green;
+  }
+}
