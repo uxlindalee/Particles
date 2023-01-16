@@ -2,15 +2,16 @@
 @import "abstracts/mixins";
 @import "base/base";
 @import "base/fonts";
+@import "main/main";
 
 @include mobile {
-  body {
-    background-color: orange;
-  }
+	body {
+		background-color: orange;
+	}
 }
 
 @include tablet {
-  body {
-    background-color: green;
-  }
+	body {
+		background-color: green;
+	}
 }

@@ -1,13 +1,14 @@
 * {
   padding: 0;
   margin: 0;
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
 }
 
 html,
 body {
   font-family: "Noto Sans KR";
-  font-size: 56.25%;
+  font-size: 62.5%;
 }
 
 ul,
@@ -64,30 +65,42 @@ li {
   src: url("../fonts/noto-sans-kr-v27-latin_korean-900.eot"); /* IE9 Compat Modes */
   src: local(""), url("../fonts/noto-sans-kr-v27-latin_korean-900.eot?#iefix") format("embedded-opentype"), url("../fonts/noto-sans-kr-v27-latin_korean-900.woff2") format("woff2"), url("../fonts/noto-sans-kr-v27-latin_korean-900.woff") format("woff"), url("../fonts/noto-sans-kr-v27-latin_korean-900.ttf") format("truetype"), url("../fonts/noto-sans-kr-v27-latin_korean-900.svg#NotoSansKR") format("svg"); /* Legacy iOS */
 }
-.motions {
-  height: 1000vh;
+#wrap {
+  min-height: 100vh;
 }
 
-.motions-wrap {
+.whale-container {
+  height: 400vh;
+}
+.whale-container .sticky {
   position: sticky;
   top: 0;
-  width: 100%;
   height: 100vh;
+  overflow: hidden;
 }
-
-.motions-box {
-  width: 100px;
-  height: 100px;
-  background-color: orange;
+.whale-container .title {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  color: #fff;
+  font-size: 20px;
+}
+.whale-container .webgl {
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  outline: none;
 }
 
 @media (max-width: 767px) {
-  main {
+  body {
     background-color: orange;
   }
 }
 @media (min-width: 768px) and (max-width: 1023px) {
-  main {
+  body {
     background-color: green;
   }
 }

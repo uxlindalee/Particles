@@ -1,0 +1,31 @@
+#wrap {
+	min-height: 100vh;
+}
+
+.whale-container {
+	height: calc(100vh * 4);
+
+	.sticky {
+		position: sticky;
+		top: 0;
+		height: 100vh;
+		overflow: hidden;
+	}
+
+	.title {
+		position: absolute;
+		top: 10px;
+		left: 10px;
+		z-index: 1;
+		color: #fff;
+		font-size: 20px;
+	}
+
+	.webgl {
+		position: relative;
+		top: 0;
+		left: 0;
+		height: 100vh;
+		outline: none;
+	}
+}
