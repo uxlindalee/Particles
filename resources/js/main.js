@@ -15,10 +15,10 @@ const threeProject = (() => {
 	const whaleContainer = document.getElementsByClassName("whale-container");
 	let loadingManager, canvas, scene, renderer, camera, ambientLight, directionalLight, gltfLoader, url, model, textureLoader, requestToRender, raf;
 
-	let whale, whaleGeometry, whaleParticles, whaleFloatingParticles, whaleOrigin, whaleBody, whaleColors, action, particleTexture;
-	let coral, coralGeometry, coralParticles, coralBody, coralColors;
+	let whale, whaleGeometry, whaleParticles, whaleFloatingGeometry, whaleFlying, whaleFloatingParticles, whaleOrigin, whaleBody, whaleColors, action, particleTexture;
+	let seahorse, seahorseGeometry, seahorseParticles, seahorseBody, seahorseColors;
 	let whaleVertices = [];
-	let coralVertices = [];
+	let seahorseVertices = [];
 	let renderPass, bloomPass, composer;
 	let mixer = null;
 	let particleCount = 20;
@@ -75,7 +75,7 @@ const threeProject = (() => {
 	};
 
 	const setTheCamera = () => {
-		camera = new THREE.PerspectiveCamera(45, areaWidth / areaHeight, 0.1, 1000);
+		camera = new THREE.PerspectiveCamera(45, areaWidth / areaHeight, 0.1, 100000);
 		camera.position.set(50, 50, 50);
 		camera.lookAt(scene.position);
 	};
@@ -95,44 +95,30 @@ const threeProject = (() => {
 	const setTheModel = () => {
 		gltfLoader = new GLTFLoader(loadingManager);
 
-		gltfLoader.load("../resources/models/coral.glb", (object) => {
-			coral = object.scene;
-			coral.traverse(function (node) {
+		gltfLoader.load("../resources/models/seahorse.glb", (object) => {
+			seahorse = object.scene;
+			seahorse.traverse(function (node) {
 				if (node.isMesh) {
 					node.castShadow = true;
 					node.receiveShadow = true;
-					coralVertices.push(node.geometry.attributes.position.array);
+
+					node.geometry.scale(0.01, 0.01, 0.01);
+					node.geometry.rotateX(THREE.MathUtils.degToRad(90));
+					node.geometry.rotateY(THREE.MathUtils.degToRad(-90));
+					node.geometry.translate(0, -2, 0);
+
+					seahorseVertices.push(...node.geometry.attributes.position.array);
 				}
-				console.log(coralVertices);
 			});
 
-			coralGeometry = new THREE.BufferGeometry();
-			coralParticles = new Float32Array(coralVertices.length * particleCount);
-			coralColors = new Float32Array(coralVertices.length * particleCount);
+			seahorseGeometry = new THREE.BufferGeometry();
+			seahorseParticles = new Float32Array(seahorseVertices.length * particleCount);
 
-			for (let i = 1; i < particleCount; i++) {
-				for (let j = 0; j < coralVertices.length; j++) {
-					coralParticles[j + coralVertices.length * i] = coralVertices[j] + Math.random() * 0.25;
-					coralColors[j + coralVertices.length * i] = coralVertices[j] + Math.random();
+			for (let i = 0; i < 4; i++) {
+				for (let j = 0; j < seahorseVertices.length; j++) {
+					seahorseParticles[j + seahorseVertices.length * i] = seahorseVertices[j] + Math.random() * 0.25;
 				}
 			}
-
-			const coralMaterial = new THREE.PointsMaterial({
-				// color: 0xffffff,
-				map: particleTexture,
-				size: 0.15,
-				sizeAttenuation: true,
-				depthWrite: false,
-				alphaTest: 0.06,
-				vertexColors: true,
-				blending: THREE.AdditiveBlending,
-			});
-
-			coralGeometry.setAttribute("position", new THREE.Float32BufferAttribute(coralParticles, 3));
-			coralGeometry.setAttribute("color", new THREE.Float32BufferAttribute(coralColors, 3));
-
-			coralBody = new THREE.Points(coralGeometry, coralMaterial);
-			coralBody.scale.set(0.2, 0.2, 0.2);
 		});
 
 		gltfLoader.load("../resources/models/humpback_whale.glb", (object) => {
@@ -144,20 +130,22 @@ const threeProject = (() => {
 					whaleVertices.push(...node.geometry.attributes.position.array);
 				}
 			});
-			mixer = new THREE.AnimationMixer(whale);
-			action = mixer.clipAction(object.animations[0]);
-			action.play();
+			// mixer = new THREE.AnimationMixer(whale);
+			// action = mixer.clipAction(object.animations[0]);
+			// action.play();
 			// whale.scale.set(10, 10, 10);
 			// scene.add(whale);
 
 			whaleGeometry = new THREE.BufferGeometry();
+			whaleFloatingGeometry = new THREE.BufferGeometry();
+
 			whaleParticles = new Float32Array(whaleVertices.length * particleCount);
 			whaleFloatingParticles = new Float32Array((whaleVertices.length * particleCount) / 2);
 			whaleColors = new Float32Array(whaleVertices.length * particleCount);
 
 			for (let i = 1; i < particleCount; i++) {
 				for (let j = 0; j < whaleVertices.length; j++) {
-					whaleParticles[j + whaleVertices.length * i] = whaleVertices[j] + Math.random() * 0.25;
+					whaleParticles[j + whaleVertices.length * i] = whaleVertices[j] + Math.random() * 0.2;
 					whaleFloatingParticles[j + whaleVertices.length * i] = whaleVertices[j] + Math.random() * 0.25;
 					whaleColors[j + whaleVertices.length * i] = whaleVertices[j] + Math.random();
 					whaleOrigin = whaleParticles;
@@ -176,12 +164,17 @@ const threeProject = (() => {
 			});
 
 			whaleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(whaleParticles, 3));
-			whaleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(whaleFloatingParticles, 3));
+			whaleFloatingGeometry.setAttribute("position", new THREE.Float32BufferAttribute(whaleFloatingParticles, 3));
+
 			whaleGeometry.setAttribute("color", new THREE.Float32BufferAttribute(whaleColors, 3));
+			whaleFloatingGeometry.setAttribute("color", new THREE.Float32BufferAttribute(whaleColors, 3));
 
 			whaleBody = new THREE.Points(whaleGeometry, whaleMaterial);
+			whaleFlying = new THREE.Points(whaleFloatingGeometry, whaleMaterial);
+
 			whaleBody.scale.set(10, 10, 10);
-			scene.add(whaleBody);
+			whaleFlying.scale.set(10, 10, 10);
+			scene.add(whaleBody, whaleFlying);
 		});
 
 		renderRequest();
@@ -205,27 +198,30 @@ const threeProject = (() => {
 		composer.addPass(bloomPass);
 	};
 
+	let posX, posY, posZ;
 	const setTheRender = () => {
 		const elapsedTime = clock.getElapsedTime();
 		const deltaTime = elapsedTime - previousTime;
 		previousTime = elapsedTime;
 
-		// camera.position.x = 10 + Math.sin(cursor.x * Math.PI * 0.02) * 3;
-		// camera.position.z = 10 + Math.cos(cursor.x * Math.PI * 0.02) * 3;
-		// camera.position.y = 10 + cursor.y * 5;
-		// camera.lookAt(scene.position);
+		if (whaleFlying) {
+			// whaleBody.rotation.x = Math.sin(elapsedTime) * 0.1;
 
-		if (whaleGeometry) {
-			whaleBody.rotation.x = Math.sin(elapsedTime) * 0.1;
-			for (let i = 0; i < particleCount; i++) {
+			for (let i = 0; i < whaleFlying.geometry.attributes.position.array.length; i++) {
 				const i3 = i * 3;
-				whaleGeometry.attributes.position.array[i3] = whaleOrigin[i3] + Math.sin(i + particleCount * 0.05) * 0.005;
-				whaleGeometry.attributes.position.array[i3 + 1] = whaleOrigin[i3 + 1] + Math.cos(i + particleCount * 0.05) * 0.005;
-				whaleGeometry.attributes.position.array[i3 + 2] = whaleOrigin[i3 + 2] + Math.cos(i + particleCount * 0.05) * 0.005;
+				posX = whaleFlying.geometry.attributes.position.array[i3] + Math.sin(i + particleCount) * Math.random() * 0.007;
+				posY = whaleFlying.geometry.attributes.position.array[i3 + 1] + Math.cos(i + particleCount) * Math.random() * 0.007;
+				posZ = whaleFlying.geometry.attributes.position.array[i3 + 2] + Math.cos(i + particleCount) * Math.random() * 0.007;
+
+				whaleFlying.geometry.attributes.position.array[i3] = posX;
+				whaleFlying.geometry.attributes.position.array[i3 + 1] = posY;
+				whaleFlying.geometry.attributes.position.array[i3 + 2] = posZ;
+				// console.log(posX, posY, posZ);
+				whaleFlying.geometry.attributes.position.needsUpdate = true;
+				// whaleGeometry.attributes.position.needsUpdate = true;
 			}
-			// particleCount += deltaTime * 0.1;
-			whaleBody.geometry.attributes.position.needsUpdate = true;
 			renderRequest();
+			particleCount += 0.1;
 		}
 
 		if (mixer !== null) {
@@ -242,6 +238,7 @@ const threeProject = (() => {
 
 	const setTheParticle = () => {
 		gsap.registerPlugin(ScrollTrigger);
+
 		gsap.to(whaleBody.rotation, {
 			y: Math.PI / 2,
 			ease: "power2",
@@ -256,12 +253,12 @@ const threeProject = (() => {
 				renderRequest();
 			},
 		});
-		// console.log(coralBody);
-		// console.log(coralBody.geometry.attributes.position.array);
+		// console.log(seahorseBody);
+		// console.log(seahorseBody.geometry.attributes.position.array);
 		// console.log(whaleBody.geometry.attributes.position.array);
 
 		gsap.to(whaleBody.geometry.attributes.position.array, {
-			endArray: coralBody.geometry.attributes.position.array,
+			endArray: seahorseParticles,
 			ease: "power2",
 			scrollTrigger: {
 				trigger: whaleContainer,
@@ -271,7 +268,6 @@ const threeProject = (() => {
 			},
 			onUpdate: () => {
 				whaleBody.geometry.attributes.position.needsUpdate = true;
-				// whaleBody.geometry.computeVertexNormals();
 				renderRequest();
 			},
 			onComplete: () => {},
